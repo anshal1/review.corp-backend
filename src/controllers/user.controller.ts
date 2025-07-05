@@ -1,5 +1,13 @@
 import { User, UserModel } from '../db/schema/user.schema'
-import { checkFields, encryptPassword, encryptText, isValidEmail, TError, TryCatch } from '../utils'
+import {
+  checkFields,
+  comparePassword,
+  encryptPassword,
+  encryptText,
+  isValidEmail,
+  TError,
+  TryCatch,
+} from '../utils'
 import { COOKIE_OPTIONS, TYPES } from '../utils/constant'
 import { GoogleTokenResponse, GoogleUser } from '../utils/types'
 
@@ -72,8 +80,13 @@ const handleRegisterWithGoogle = TryCatch(async (req, res) => {
 })
 
 const handleLogin = TryCatch(async (req, res) => {
-  const token = req.headers.authorization
-  res.json({ token })
+  const body = req.body as User
+  if (!body.email || !body.password) return TError('Email and Password are required', 400)
+  const user = await UserModel.findOne({ email: body.email }).lean()
+  if (!user) return TError('User not found', 404)
+  if (!comparePassword(body.password, user.password)) return TError('Incorrect Password', 400)
+  const cookie = encryptText(user._id.toString())
+  res.cookie('token', cookie, COOKIE_OPTIONS).json({ message: 'Login successful' })
 })
 
 export { handleRegister, handleLogin, handleRegisterWithGoogle }
