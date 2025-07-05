@@ -18,16 +18,13 @@
   "dependencies": {
     "cors": "^2.8.5",
     "dotenv": "^17.0.0",
-    "drizzle-orm": "^0.44.2",
-    "express": "^5.1.0",
-    "pg": "^8.16.3"
+    "express": "^5.1.0"
   },
   "devDependencies": {
     "@eslint/js": "^9.30.0",
     "@types/cors": "^2.8.19",
     "@types/express": "^5.0.3",
     "@types/node": "^24.0.7",
-    "@types/pg": "^8.15.4",
     "@typescript-eslint/eslint-plugin": "^8.35.0",
     "@typescript-eslint/parser": "^8.35.0",
     "drizzle-kit": "^0.31.4",
