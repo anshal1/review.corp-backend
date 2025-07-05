@@ -1,21 +1,29 @@
-import { TError, TryCatch } from '../utils'
+import { User, UserModel } from '../db/schema/user.schema'
+import { checkFields, encryptPassword, encryptText, isValidEmail, TError, TryCatch } from '../utils'
+import { COOKIE_OPTIONS, TYPES } from '../utils/constant'
 import { GoogleTokenResponse, GoogleUser } from '../utils/types'
 
-const handleRegister = TryCatch(async (_, res) => {
-  const user = {
-    name: 'user',
-    id: 123,
+const handleRegister = TryCatch(async (req, res) => {
+  const body = req.body as User
+  checkFields(body)
+  if (body.email) {
+    if (!isValidEmail(body.email)) return TError('Invalid Email', 400)
   }
-  //   cookie saving test
-  res
-    .cookie('token', user.id, {
-      path: '/',
-      secure: true,
-      sameSite: 'none',
-      httpOnly: true,
-      maxAge: 1000 * 60 * 60 * 24,
-    })
-    .json({ message: 'Registration SuccessFull' })
+
+  if (!TYPES.includes(body.type)) return TError('Invalid Type', 400)
+
+  if (body.type === 'Organization' && !body.address)
+    return TError('Address is required for organizations', 400)
+
+  const userExists = await UserModel.findOne({ email: body.email }).lean()
+  if (userExists) return TError('User already exists', 400)
+  const hashPassword = encryptPassword(body.password)
+  body.password = hashPassword
+  const verificationHash = encryptText(body.email)
+  // TODO send verification email
+  const userCreated = await UserModel.create({ ...body, verificationHash })
+  const cookie = encryptText(userCreated._id.toString())
+  res.cookie('token', cookie, COOKIE_OPTIONS).json({ message: 'Regstration successful' })
 })
 
 const handleRegisterWithGoogle = TryCatch(async (req, res) => {
