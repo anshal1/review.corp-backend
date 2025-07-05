@@ -5,7 +5,15 @@ import router from './routes'
 import { config } from 'dotenv'
 import path from 'path'
 import { handleDBConnect } from './db/db'
+import { User } from './db/schema/user.schema'
 config({ path: path.join(__dirname, '../.env') })
+
+declare module 'express' {
+  // Inject additional properties on express.Request
+  interface Request {
+    user?: User
+  }
+}
 
 const app = express()
 const PORT = process.env.PORT || 5000

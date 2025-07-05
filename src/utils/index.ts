@@ -1,7 +1,7 @@
 import { compareSync, genSaltSync, hashSync } from 'bcrypt'
 import { NextFunction, Request, Response } from 'express'
 import { sign, verify } from 'jsonwebtoken'
-import { EMAIL_REGEX } from './constant'
+import { EMAIL_REGEX, serviceCategories } from './constant'
 
 export class ApiError extends Error {
   status: number
@@ -58,4 +58,16 @@ export function checkFields(fields: Record<string, unknown>) {
 export function isValidEmail(email: string) {
   const emailRegex = new RegExp(EMAIL_REGEX)
   return emailRegex.test(email)
+}
+
+export async function isSelectedSericesvalid(services: string[]): Promise<boolean> {
+  return new Promise((resolve, reject) => {
+    services.forEach((service) => {
+      serviceCategories.forEach((category) => {
+        if (!category.services.includes(service))
+          reject(`${service} is not a valid service for ${category.category}`)
+      })
+    })
+    resolve(true)
+  })
 }

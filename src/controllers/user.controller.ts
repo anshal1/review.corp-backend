@@ -4,6 +4,7 @@ import {
   comparePassword,
   encryptPassword,
   encryptText,
+  isSelectedSericesvalid,
   isValidEmail,
   TError,
   TryCatch,
@@ -89,4 +90,27 @@ const handleLogin = TryCatch(async (req, res) => {
   res.cookie('token', cookie, COOKIE_OPTIONS).json({ message: 'Login successful' })
 })
 
-export { handleRegister, handleLogin, handleRegisterWithGoogle }
+const handleVerify = TryCatch(async (req, res) => {
+  const hash = req.params.hash as string
+  const user = await UserModel.findOne({ verificationHash: hash }).lean()
+  if (!user) return TError('User not found', 404)
+  await UserModel.updateOne({ _id: user._id }, { verified: true, verificationHash: null })
+  res.json({ message: 'Verification successful' })
+})
+
+const handleUpdateProfile = TryCatch(async (req, res) => {
+  if (!req.user) return TError('User not found', 404)
+  const body = req.body as User
+  if (body.services && !(await isSelectedSericesvalid(body.services)))
+    return TError('Invalid Services', 400)
+  const user = await UserModel.findOne({ _id: req.user._id }).lean()
+  if (!user) return TError('User not found', 404)
+  const updatedUser = await UserModel.updateOne(
+    { _id: user._id },
+    { ...body },
+    { new: true },
+  ).lean()
+  res.json({ message: 'Profile updated successfully', user: updatedUser })
+})
+
+export { handleRegister, handleLogin, handleRegisterWithGoogle, handleVerify, handleUpdateProfile }
