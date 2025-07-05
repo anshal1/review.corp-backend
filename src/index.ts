@@ -4,6 +4,7 @@ import cors from 'cors'
 import router from './routes'
 import { config } from 'dotenv'
 import path from 'path'
+import { handleDBConnect } from './db/db'
 config({ path: path.join(__dirname, '../.env') })
 
 const app = express()
@@ -32,5 +33,6 @@ app.get('/', (_req, res) => {
 })
 
 app.listen(PORT, () => {
+  handleDBConnect()
   console.log(`Server is running at http://localhost:${PORT}`)
 })
