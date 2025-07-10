@@ -1,6 +1,7 @@
 import { Router } from 'express'
 import {
   handleGetProfile,
+  handleGetPublicProfile,
   handleLogin,
   handleRegister,
   handleRegisterWithGoogle,
