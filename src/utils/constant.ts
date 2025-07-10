@@ -85,3 +85,6 @@ export const serviceCategories = [
     ],
   },
 ]
+
+export const FREE_REVIEWS = 5
+export const LIMIT = 10
