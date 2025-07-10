@@ -9,7 +9,7 @@ export const handleCreateLink = TryCatch(async (req, res) => {
     user: user._id,
     link: `${process.env.FRONTEND_URL}/add-review/${uniqueURL}`,
   })
-  if (newURL.link) return res.status(302).redirect(newURL.link)
+  if (newURL.link) return res.json({ link: newURL.link })
   return TError('Something went wrong', 500)
 })
 
