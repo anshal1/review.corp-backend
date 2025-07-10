@@ -7,6 +7,7 @@ export const validateUserMiddleware = TryCatch(async (req, res, next) => {
   if (!token) return TError('Please login to continue', 401)
   const userId = decryptText(token)
   const user = await UserModel.findOne({ _id: userId }).lean()
+  if (!user?.verified) return TError('Please verify your account to continue', 401)
   if (!user) return TError('User not found', 404)
   req.user = user
   next()
