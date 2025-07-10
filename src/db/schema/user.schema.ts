@@ -48,6 +48,18 @@ const UserSchema = new Schema(
     services: {
       type: [String],
     },
+    isSubscribed: {
+      type: Boolean,
+      default: false,
+    },
+    subscriptionID: {
+      type: String,
+      default: null,
+    },
+    stripeCustomerId: {
+      type: String,
+      default: null,
+    },
   },
   { timestamps: true },
 )

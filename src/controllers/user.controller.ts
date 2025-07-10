@@ -61,27 +61,28 @@ const handleRegisterWithGoogle = TryCatch(async (req, res) => {
     },
   })
 
-  const _userData = (await userRes.json()) as GoogleUser
+  const userData = (await userRes.json()) as GoogleUser
   if (!userRes.ok) return TError('User not found', 404)
-  // Find user in the db to check if the user already exists or not
-  const user = {
-    name: 'user',
-    id: 200,
+  const userExits = await UserModel.findOne({ email: userData.email }).lean()
+  if (userExits) {
+    const token = encryptText(userExits._id.toString())
+    return res.cookie('token', token, COOKIE_OPTIONS).json({ message: 'Login SuccessFull' })
   }
+  const newUser = await UserModel.create({
+    email: userData.email,
+    name: userData.name,
+    type: 'Individual',
+    verified: true,
+    password: 'google',
+  })
+  const token = encryptText(newUser._id.toString())
+  res.cookie('token', token, COOKIE_OPTIONS).json({ message: 'Registration successfull' })
   //   cookie saving test
-  res
-    .cookie('token', user.id, {
-      path: '/',
-      secure: true,
-      sameSite: 'none',
-      httpOnly: true,
-      maxAge: 1000 * 60 * 60 * 24,
-    })
-    .json({ message: 'Registration SuccessFull' })
 })
 
 const handleLogin = TryCatch(async (req, res) => {
   const body = req.body as User
+  if (body.password === 'google') return TError('User not found', 404)
   if (!body.email || !body.password) return TError('Email and Password are required', 400)
   const user = await UserModel.findOne({ email: body.email }).lean()
   if (!user) return TError('User not found', 404)
@@ -103,6 +104,8 @@ const handleUpdateProfile = TryCatch(async (req, res) => {
   const body = req.body as User
   if (body.services && !(await isSelectedSericesvalid(body.services)))
     return TError('Invalid Services', 400)
+  if (body.type === 'Organization' && !body.address)
+    return TError('Address is required for organizations', 400)
   const user = await UserModel.findOne({ _id: req.user._id }).lean()
   if (!user) return TError('User not found', 404)
   const updatedUser = await UserModel.updateOne(
