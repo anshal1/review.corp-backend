@@ -116,4 +116,30 @@ const handleUpdateProfile = TryCatch(async (req, res) => {
   res.json({ message: 'Profile updated successfully', user: updatedUser })
 })
 
-export { handleRegister, handleLogin, handleRegisterWithGoogle, handleVerify, handleUpdateProfile }
+const handleGetPublicProfile = TryCatch(async (req, res) => {
+  const userId = req.params.id
+  const user = await UserModel.findOne({ _id: userId })
+    .select('-password -stripeCustomerId -subscriptionID -isSubscribed')
+    .lean()
+  if (!user) return TError('User not found', 404)
+  res.json({ user })
+})
+
+const handleGetProfile = TryCatch(async (req, res) => {
+  if (!req.user) return TError('User not found', 404)
+  const user = {
+    ...req.user,
+    password: null,
+  }
+  res.json({ user })
+})
+
+export {
+  handleRegister,
+  handleLogin,
+  handleRegisterWithGoogle,
+  handleVerify,
+  handleUpdateProfile,
+  handleGetPublicProfile,
+  handleGetProfile,
+}
